@@ -1,4 +1,4 @@
-require './vertex.rb'
+require_relative 'tile.rb'
 
 class Maze
   attr_reader :start, :goal, :grid
@@ -12,9 +12,9 @@ class Maze
     start, goal = nil, nil
     @grid.each do |row|
       row.each do |cell|
-        if cell && cell.name == "START"
+        if cell && cell.value == "START"
           start = cell
-        elsif cell && cell.name == "END"
+        elsif cell && cell.value == "END"
           goal = cell
         end
       end
@@ -27,7 +27,7 @@ class Maze
     File.foreach(file_name).with_index do |line, idy|
       row = []
       line.chomp.scan(/./).each.with_index do |char, idx|
-        row << Vertex.vertex_from_char(char, idx, idy)
+        row << Tile.vertex_from_char(char, idx, idy)
       end
       grid << row
     end
@@ -71,23 +71,28 @@ class Maze
 
   def self.test
     scheme = ('0'..'9').to_a + ('a'..'z').to_a + ('A'..'Z').to_a
+    colors = [:red, :green, :blue]
 
-    m = Maze.from_file('maze.txt')
+    m = Maze.from_file('../files/maze.txt')
     m.render
+
+    dfs_dequeue = Proc.new {|queue| queue.pop}
+
     heuristic = nil #Proc.new {|node| node.estimate_distance(m.goal)}
-    path = m.start.bfs(m.goal, heuristic ) do |node|
-      node.name = node.distance%10
-      node.color = :cyan
-      m.render
-      sleep(1)
+    path = Vertex.traverse(m.start,m.goal,dfs_dequeue) do |node|
+      unless node.value.is_a?(String)
+        node.value = node.distance%10
+        node.color = colors[(node.distance/10)%3]
+      end
+      # m.render
+      # sleep(1.0/16.0)
 
     end
     m.render
     path.shift
     path.pop
     path.each do |node|
-      node.name = 'X'
-      node.color = :green
+      node.color = :yellow
     end
     m.render
   end
