@@ -15,8 +15,7 @@ class Vertex
   end
 
   def initialize(options={})
-    @id = @@id_counter
-    @@id_counter += 1
+    @id = self.class.get_count
     @value = options[:value]
 
     @neighbors = Hash.new
@@ -30,9 +29,13 @@ class Vertex
     @value.nil? ? "nil" : @value.to_s
   end
 
-  def connect(neighbor, weight=1)
-    neighbor.neighbors[self] = weight
+  def directed_connect(neighbor, weight=1)
     neighbors[neighbor] = weight
+  end
+
+  def connect(neighbor, weight=1)
+    directed_connect(neighbor, weight)
+    neighbot.directed_connect(self, weight)
   end
 
   def record_path(dest)
