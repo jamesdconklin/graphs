@@ -1,7 +1,7 @@
 require_relative 'vertex'
 
 class TreeNode < Vertex
-  def parent?(node)
+  def has_parent?(node)
     return true if self == node
     @prev.nil? ? false : @prev.parent?(node)
   end
