@@ -1,4 +1,4 @@
-require_relative 'tile.rb'
+require_relative 'tile'
 
 class Maze
   attr_reader :start, :goal, :grid
@@ -35,15 +35,14 @@ class Maze
   end
 
   def self.connect_grid(grid)
-    0.upto(grid.length-1) do |idy|
-      0.upto(grid[idy].length-1) do |idx|
+    0.upto(grid.length - 1) do |idy|
+      0.upto(grid[idy].length - 1) do |idx|
         curr = grid[idy][idx]
-        if curr
-          right = grid[idy][idx+1]
-          down = grid[idy+1][idx]
-          curr.connect(right) if right
-          curr.connect(down) if down
-        end
+        next unless curr
+        right = grid[idy][idx + 1]
+        down = grid[idy + 1][idx]
+        curr.connect(right) if right
+        curr.connect(down) if down
       end
     end
   end
@@ -60,7 +59,7 @@ class Maze
       row.each do |cell|
         string << (cell ? cell.to_s : '*')
       end
-      string  << "\n"
+      string << "\n"
     end
     string
   end
@@ -70,29 +69,22 @@ class Maze
   end
 
   def self.test
-    scheme = ('0'..'9').to_a + ('a'..'z').to_a + ('A'..'Z').to_a
-    colors = [:red, :green, :blue]
-
-    m = Maze.from_file('../files/maze.txt')
+    m = Maze.from_file('files/maze2.txt')
     m.render
-
-    dfs_dequeue = Proc.new {|queue| queue.pop}
-
-    heuristic = nil #Proc.new {|node| node.estimate_distance(m.goal)}
-    path = Vertex.traverse(m.start,m.goal,dfs_dequeue) do |node|
-      unless node.value.is_a?(String)
-        node.value = node.distance%10
-        node.color = colors[(node.distance/10)%3]
-      end
-      # m.render
-      # sleep(1.0/16.0)
+    heuristic = nil # Proc.new {|node| node.estimate_distance(m.goal)}
+    path = Vertex.traverse(m.start, m.goal) do |node|
+      node.value = node.distance % 10
+      node.color = [:red, :green, :yellow][node.distance / 10]
+      m.render
+      sleep(0.2)
 
     end
     m.render
     path.shift
     path.pop
     path.each do |node|
-      node.color = :yellow
+      # node.value = 'X'
+      node.color = :cyan
     end
     m.render
   end

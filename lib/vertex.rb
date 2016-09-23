@@ -43,7 +43,7 @@ class Vertex
     path.reverse
   end
 
-  def self.enqueue(queue, parent, child, nq_fn=nil)
+  def self.enqueue(queue, parent, child, nq_fn = nil)
     if nq_fn
       nq_fn.call(queue, parent, child)
     elsif child.distance.nil? ||
@@ -54,11 +54,11 @@ class Vertex
     end
   end
 
-  def self.dequeue(queue, dq_fn=nil)
+  def self.dequeue(queue, dq_fn = nil)
     dq_fn ? dq_fn.call(queue) : queue.shift
   end
 
-  def self.traverse(start, dest, dq_fn=nil, nq_fn=nil, &blk)
+  def self.traverse(start, dest, dq_fn = nil, nq_fn = nil, &blk)
     start.prev, start.distance = nil, 0
     queue = [start]
     while (vert = self.dequeue(queue, dq_fn))
