@@ -77,8 +77,54 @@ describe Vertex do
     end
   end
 
-  describe '#traverse' do
-    before(:each)
+  describe 'traversal' do
+    before(:each) do
+      @one.directed_connect(@two, 16)
+      @one.directed_connect(@four, 4)
+      @two.directed_connect(@one, 11)
+      @two.directed_connect(@three, 4)
+      @two.directed_connect(@five, 3)
+      @two.connect(@six, 10)
+      @three.directed_connect(@seven, 3)
+      @three.directed_connect(@two, 4)
+      @three.directed_connect(@four, 9)
+      @four.directed_connect(@one, 7)
+      @four.directed_connect(@three, 5)
+      @five.directed_connect(@two, 7)
+      @five.directed_connect(@six, 6)
+      @six.directed_connect(@two, 10)
+      @six.directed_connect(@five, 7)
+    end
+    describe '#traverse' do
+      it 'finds and records the shortest path to from start to end node' do
+        Vertex.traverse(@one, nil)
+        expect(@six.distance).to eq(22)
+        expect(@one.record_path(@six).map(&:id)).to eq([1, 4, 3, 2, 5, 6])
+      end
+
+      it 'finds no path if destination is disconnected'
+    end
+
+    describe '#each' do
+      it 'can take a block and invoke each time a node is visited.' do
+        expect do |block|
+          @one.each(&block)
+        end.to yield_successive_args(Vertex, Vertex, Vertex, Vertex,
+                                     Vertex, Vertex, Vertex)
+      end
+
+      it 'cleans up after itself' do
+        @one.each { nil }
+        verts = [@one, @two, @three, @four, @five, @six, @seven]
+        expect(verts.all? do |vert|
+          vert.prev.nil? && vert.distance.nil?
+        end).to be_truthy
+      end
+      it 'integrates Enumerable' do
+        expect(@one.map(&:id).sort).to eq([1, 2, 3, 4, 5, 6, 7])
+      end
+    end
+
   end
 
 end

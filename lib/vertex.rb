@@ -1,28 +1,19 @@
 require 'set'
 
 class Vertex
+  include Enumerable
   attr_accessor :prev, :value, :distance
   attr_reader :neighbors, :id
-
-  @@id_counter = -1
-
-  def self.get_count
-    @@id_counter += 1
-  end
-
-  def self.reset_count
-    @@id_counter = -1
-  end
 
   def initialize(options = {})
     @id = self.class.get_count
     @value = options[:value] || @id
 
-    @neighbors = Hash.new
+    @neighbors = {}
   end
 
   def inspect
-    "<Node #{@id}, neighbors [#{@neighbors.keys.map(&:id).join(', ')}]"
+    "<Node #{@id}, neighbors [#{@neighbors.keys.map(&:id).join(', ')}]>"
   end
 
   def to_s
@@ -46,6 +37,45 @@ class Vertex
     path.reverse
   end
 
+  def each(&prc)
+    self.class.bfs(self, nil, &prc)
+    self.class.reset(self)
+    self
+  end
+
+  def self.traverse(start, dest, dq_fn = nil, nq_fn = nil, &blk)
+    start.prev = nil
+    start.distance = 0
+    queue = [start]
+    while (vert = self.dequeue(queue, dq_fn))
+      blk.call(vert) if block_given?
+      return start.record_path(vert) if vert == dest
+      vert.neighbors.each do |neighbor, _|
+        self.enqueue(queue, vert, neighbor, nq_fn)
+      end
+    end
+    []
+  end
+
+  def self.reset(start)
+    reset_proc = proc do |queue, parent, child|
+      self.reset_enqueue(queue, parent, child)
+    end
+    self.traverse(start, nil, nil, reset_proc) do |node|
+      node.prev = nil
+      node.distance = nil
+    end
+  end
+
+  def self.bfs(start, dest, &blk)
+    bfs_proc = proc do |queue, parent, child|
+      self.bfs_enqueue(queue, parent, child)
+    end
+    self.traverse(start, dest, nil, bfs_proc) do |node|
+      blk.call(node)
+    end
+  end
+
   def self.enqueue(queue, parent, child, nq_fn = nil)
     if nq_fn
       nq_fn.call(queue, parent, child)
@@ -61,20 +91,24 @@ class Vertex
     dq_fn ? dq_fn.call(queue) : queue.shift
   end
 
-  def self.traverse(start, dest, dq_fn = nil, nq_fn = nil, &blk)
-    start.prev, start.distance = nil, 0
-    queue = [start]
-    while (vert = self.dequeue(queue, dq_fn))
-      blk.call(vert) if block_given?
-      vert.neighbors.each do |neighbor, weight|
-        if neighbor == dest
-          neighbor.prev, neighbor.distance = vert, vert.distance + weight
-          blk.call(neighbor) if block_given?
-          return start.record_path(neighbor)
-        end
-        self.enqueue(queue, vert, neighbor, nq_fn)
-      end
-    end
-    []
+  def self.bfs_enqueue(queue, parent, child)
+    return if child.distance && child.distance <= parent.distance + 1
+    child.distance = parent.distance + 1
+    queue << child
+  end
+
+  def self.reset_enqueue(queue, _, child)
+    return if child.distance.nil?
+    queue << child
+  end
+
+  @@id_counter = -1
+
+  def self.get_count
+    @@id_counter += 1
+  end
+
+  def self.reset_count
+    @@id_counter = -1
   end
 end
