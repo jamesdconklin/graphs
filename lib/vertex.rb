@@ -71,9 +71,7 @@ class Vertex
     bfs_proc = proc do |queue, parent, child|
       self.bfs_enqueue(queue, parent, child)
     end
-    self.traverse(start, dest, nil, bfs_proc) do |node|
-      blk.call(node)
-    end
+    self.traverse(start, dest, nil, bfs_proc, &blk)
   end
 
   def self.enqueue(queue, parent, child, nq_fn = nil)
@@ -94,6 +92,7 @@ class Vertex
   def self.bfs_enqueue(queue, parent, child)
     return if child.distance && child.distance <= parent.distance + 1
     child.distance = parent.distance + 1
+    child.prev = parent
     queue << child
   end
 

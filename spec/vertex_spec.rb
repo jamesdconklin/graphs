@@ -95,14 +95,16 @@ describe Vertex do
       @six.directed_connect(@two, 10)
       @six.directed_connect(@five, 7)
     end
-    describe '#traverse' do
+    describe '::traverse' do
       it 'finds and records the shortest path to from start to end node' do
         Vertex.traverse(@one, nil)
         expect(@six.distance).to eq(22)
         expect(@one.record_path(@six).map(&:id)).to eq([1, 4, 3, 2, 5, 6])
       end
 
-      it 'finds no path if destination is disconnected'
+      it 'finds no path if destination is disconnected' do
+        expect(Vertex.traverse(@seven, @one)).to be_empty
+      end
     end
 
     describe '#each' do
@@ -122,6 +124,12 @@ describe Vertex do
       end
       it 'integrates Enumerable' do
         expect(@one.map(&:id).sort).to eq([1, 2, 3, 4, 5, 6, 7])
+      end
+    end
+
+    describe '::bfs' do
+      it 'finds path with fewest hops.' do
+        expect(Vertex.bfs(@one, @seven).map(&:id)).to eq([1, 2, 3, 7])
       end
     end
 
